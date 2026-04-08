@@ -15,7 +15,7 @@ app.post('/dish/update', (req, res) => {
 })
 
 app.get('/dish/get', (req, res) => {
-  res.send('Vracíím pokrm dle zadaných parametrů!')
+  res.send('Vracím pokrm dle zadaných parametrů!')
 })
 
 app.post('/dish/delete', (req, res) => {

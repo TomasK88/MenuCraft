@@ -6,8 +6,8 @@
 //   {
 //     "id": "<menuDayId>",
 //     "dishes": [
-//       { "dishId": "...", "price": 149, "position": 0 },
-//       { "dishId": "...", "price": 49,  "position": 1 }
+//       { "dishId": "...", "position": 0 },
+//       { "dishId": "...", "position": 1 }
 //     ]
 //   }
 //
@@ -15,8 +15,9 @@
 //   - Editovat lze POUZE MenuDay ve stavu DRAFT.
 //     PUBLISHED menu je read-only (finální, zveřejněné).
 //   - Každé dishId musí existovat v knihovně a být aktivní.
-//   - Price se posílá v požadavku - uživatel může cenu
-//     pro konkrétní den ručně upravit (např. slevová akce).
+//   - Cena (price) se NEPOSÍLÁ v požadavku - backend ji doplní
+//     automaticky z aktuálního ceníku jídla (dish.price).
+//     Díky tomu frontend nemusí znát ceny a cena je vždy aktuální.
 // =====================================================
 
 const Ajv = require("ajv");
@@ -25,7 +26,8 @@ const ajv = new Ajv();
 const menuDayDao = require("../../dao/menuDay-dao.js");
 const dishDao = require("../../dao/dish-dao.js");
 
-// Schéma validuje jak id MenuDay, tak strukturu každé vazby v dishes
+// Schéma validuje jak id MenuDay, tak strukturu každé vazby v dishes.
+// Cena (price) zde záměrně NENÍ - backend ji doplní sám z katalogu jídel.
 const schema = {
   type: "object",
   properties: {
@@ -33,14 +35,12 @@ const schema = {
     dishes: {
       type: "array",
       items: {
-        // Každá položka v dishes musí mít tuto strukturu
         type: "object",
         properties: {
           dishId: { type: "string" },
-          price: { type: "number", minimum: 0 },
           position: { type: "integer", minimum: 0 },
         },
-        required: ["dishId"], // position je volitelná
+        required: ["dishId"],
         additionalProperties: false,
       },
       minItems: 1, // dishes nesmí být prázdné pole
@@ -84,9 +84,12 @@ async function UpdateAbl(req, res) {
       return;
     }
 
-    // 4) Ověříme, že každé zadané jídlo existuje a je aktivní.
-    //    Procházíme přes for...of - styl, který umožňuje použít return/break.
-    //    (Alternativa .forEach() return dovnitř cyklu nestopne celou funkci.)
+    // 4) Ověříme každé jídlo a doplníme cenu z katalogu.
+    //    Výsledkem bude pole dishes se správnou strukturou { dishId, price, position }.
+    //
+    //    Procházíme přes for...of místo .forEach(), protože chceme moci
+    //    použít return pro předčasné ukončení funkce při chybě.
+    const dishesWithPrice = [];
     for (const item of dtoIn.dishes) {
       const dish = dishDao.get(item.dishId);
 
@@ -106,12 +109,20 @@ async function UpdateAbl(req, res) {
         });
         return;
       }
+
+      // Sestavíme finální objekt jídla:
+      //   - dishId a position přicházejí z requestu
+      //   - price doplníme z aktuálního katalogu (snapshot v okamžiku záměny)
+      dishesWithPrice.push({
+        dishId: item.dishId,
+        price: dish.price,
+        position: item.position ?? dishesWithPrice.length,
+      });
     }
 
-    // 5) Vše v pořádku - uložíme nové pole dishes do MenuDay.
-    //    DAO update sloučí { id, dishes } s aktuálním stavem -
-    //    přepíše jen pole dishes, ostatní atributy (status, date...) zůstanou.
-    const updated = menuDayDao.update({ id: dtoIn.id, dishes: dtoIn.dishes });
+    // 5) Vše v pořádku - uložíme dishes s doplněnými cenami.
+    //    DAO update přepíše jen pole dishes, ostatní atributy (status, date...) zůstanou.
+    const updated = menuDayDao.update({ id: dtoIn.id, dishes: dishesWithPrice });
     res.json(updated);
   } catch (e) {
     res.status(500).json({ message: e.message });

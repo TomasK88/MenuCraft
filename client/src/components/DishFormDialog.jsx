@@ -107,8 +107,8 @@ function DishFormDialog({ open, dish, onClose, onSaved }) {
         saved = await createDish(payload);
       }
 
-      // Předáme uložené jídlo rodiči (aby aktualizoval seznam)
-      onSaved(saved);
+      // Předáme uložené jídlo rodiči + příznak zda šlo o vytvoření (true) nebo úpravu (false)
+      onSaved(saved, !isEdit);
       onClose();
     } catch (e) {
       setError(e.message);
@@ -174,29 +174,52 @@ function DishFormDialog({ open, dish, onClose, onSaved }) {
             rows={2}
           />
 
-          {/* Sekce alergenů - checkboxy ve dvou sloupcích */}
+          {/* Sekce alergenů - dva sloupce: 1–7 vlevo, 8–14 vpravo */}
           <FormControl component="fieldset">
             <FormLabel component="legend" sx={{ mb: 0.5, fontSize: 14 }}>
               Alergeny
             </FormLabel>
-            {/* row = checkboxy vedle sebe (ne pod sebou) */}
-            <FormGroup row>
-              {ALLERGENS.map((a) => (
-                <FormControlLabel
-                  key={a.id}
-                  control={
-                    <Checkbox
-                      size="small"
-                      checked={form.allergens.includes(a.id)}
-                      onChange={() => toggleAllergen(a.id)}
-                    />
-                  }
-                  label={a.label}
-                  // width 50% = dva sloupce vedle sebe
-                  sx={{ width: "50%", mr: 0, mb: 0 }}
-                />
-              ))}
-            </FormGroup>
+            {/*
+              Rozdělíme alergeny na dvě poloviny a zobrazíme je ve dvou sloupcích.
+              Každý sloupec je flexbox se směrem "column" - položky jdou pod sebe.
+              Díky tomu je 1 pod 2 pod 3... (ne 1 vedle 2, 3 vedle 4...).
+            */}
+            <Box sx={{ display: "flex", gap: 2 }}>
+              {/* Levý sloupec: alergeny 1–7 */}
+              <FormGroup sx={{ flex: 1 }}>
+                {ALLERGENS.slice(0, 7).map((a) => (
+                  <FormControlLabel
+                    key={a.id}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={form.allergens.includes(a.id)}
+                        onChange={() => toggleAllergen(a.id)}
+                      />
+                    }
+                    label={a.label}
+                    sx={{ mr: 0, mb: 0 }}
+                  />
+                ))}
+              </FormGroup>
+              {/* Pravý sloupec: alergeny 8–14 */}
+              <FormGroup sx={{ flex: 1 }}>
+                {ALLERGENS.slice(7).map((a) => (
+                  <FormControlLabel
+                    key={a.id}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={form.allergens.includes(a.id)}
+                        onChange={() => toggleAllergen(a.id)}
+                      />
+                    }
+                    label={a.label}
+                    sx={{ mr: 0, mb: 0 }}
+                  />
+                ))}
+              </FormGroup>
+            </Box>
           </FormControl>
 
           {/* Switch (přepínač) pro aktivní/neaktivní stav jídla */}

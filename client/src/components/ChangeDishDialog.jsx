@@ -49,15 +49,28 @@ function ChangeDishDialog({ open, menuDay, dishSlot, weekDays, allDishes, onClos
   // useMemo = zapamatuje výsledek výpočtu. Přepočítá se jen když se změní závislosti.
   // Výhoda: nefiltrujeme celý katalog při každém překreslení (render), jen při změně dat.
 
-  // Sada dishId, která jsou použita v ostatních dnech stejného týdne (ne v aktuálním dni)
+  // Sada dishId, která nesmí být nabídnuta jako záměna:
+  //   1) Jídla použitá v ostatních dnech téhož týdne (každé jídlo max. 1× za týden)
+  //   2) Jídla použitá ve stejném dni - ale JEN ta, která nejsou právě zaměňovaná
+  //      (např. den má 2 polévky: měníme polévku A → nesmíme nabídnout polévku B)
   const usedIds = useMemo(() => {
     if (!dishSlot || !weekDays) return new Set();
     const set = new Set();
     for (const day of weekDays) {
-      // Přeskočíme aktuální den - chceme jen ostatní dny
-      if (day.id === menuDay?.id) continue;
-      for (const d of day.dishes || []) {
-        set.add(d.dishId);
+      if (day.id === menuDay?.id) {
+        // Aktuální den: vyloučíme všechna jídla KROMĚ toho, které právě měníme.
+        // Důvod: uživatel zaměňuje konkrétní jídlo - ostatní jídla téhož dne
+        //        nesmí být nabídnuta, aby se v jednom dni neopakovala.
+        for (const d of day.dishes || []) {
+          if (d.dishId !== dishSlot.dishId) {
+            set.add(d.dishId);
+          }
+        }
+      } else {
+        // Ostatní dny: vyloučíme vše (unikátnost jídel přes celý týden)
+        for (const d of day.dishes || []) {
+          set.add(d.dishId);
+        }
       }
     }
     return set;
@@ -82,11 +95,12 @@ function ChangeDishDialog({ open, menuDay, dishSlot, weekDays, allDishes, onClos
     try {
       // Sestavíme nový seznam jídel - nahradíme jen ten na dané pozici.
       // .map() projde každé jídlo: pokud je to to, co měníme (podle position),
-      // vrátí nový objekt s novým dishId a cenou. Ostatní vrátí beze změny.
+      // vrátí nový objekt s novým dishId. Cenu NEposíláme - backend ji doplní
+      // automaticky z aktuálního ceníku jídla. Ostatní jídla vrátíme beze změny.
       const newDishes = (menuDay.dishes || []).map((d) =>
         d.position === dishSlot.position
-          ? { dishId: selected.id, price: selected.price, position: d.position }
-          : d
+          ? { dishId: selected.id, position: d.position }
+          : { dishId: d.dishId, position: d.position }
       );
 
       const updated = await updateMenuDay({ id: menuDay.id, dishes: newDishes });

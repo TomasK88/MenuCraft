@@ -39,12 +39,15 @@ import Grid from "@mui/material/Grid";
 
 // DatePicker = komponenta pro výběr datumu z kalendáře
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+// PickerDay = výchozí komponenta pro jeden den v kalendáři (v MUI X v9 bez "s").
+// Importujeme ji, abychom ji mohli rozšířit vlastním stylem pro zvýraznění celého týdne.
+import { PickerDay } from "@mui/x-date-pickers/PickerDay";
 
+import EditIcon from "@mui/icons-material/Edit";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from '@mui/icons-material/Edit';
 
 import {
   getMenuDayList,
@@ -60,13 +63,77 @@ import ChangeDishDialog from "../components/ChangeDishDialog";
 // Aktivujeme isoWeek plugin - musí se provést jednou před použitím metod
 dayjs.extend(isoWeek);
 
+// =====================================================
+// WeekDay - vlastní komponenta pro jeden den v kalendáři
+// =====================================================
+// DatePicker umožňuje přes prop "slots.day" nahradit výchozí
+// vykreslení každého dne vlastní komponentou. Dostaneme "day"
+// (dayjs objekt daného dne) a zbytek props předáme dál do PickerDay.
+//
+// Logika zvýraznění:
+//   - Pokud den patří do vybraného ISO týdne (Po–Pá), obarvíme ho.
+//   - Pondělí dostane zaoblení vlevo, pátek vpravo → kapslový tvar.
+//   - Víkend a dny mimo měsíc zůstanou bez zvýraznění.
+//   - selected={false} vypneme výchozí modré kolečko pro jeden den.
+//
+// weekYear a weekNumber dostane komponenta přes slotProps.day (viz DatePicker níže).
+function WeekDay({ day, weekYear, weekNumber, outsideCurrentMonth, ...other }) {
+  const isWeekend = day.isoWeekday() > 5; // 6 = sobota, 7 = neděle
+
+  // Den patří do vybraného týdne, pokud:
+  //   - není mimo aktuální měsíc (outsideCurrentMonth = šedé dny ze sousedního měsíce)
+  //   - není víkend (zvýrazňujeme jen pracovní dny Po–Pá)
+  //   - má stejné ISO číslo týdne i roku jako vybraný týden
+  const inWeek =
+    !outsideCurrentMonth &&
+    !isWeekend &&
+    weekYear != null &&
+    weekNumber != null &&
+    day.isoWeek() === weekNumber &&
+    day.isoWeekYear() === weekYear;
+
+  const isMonday = day.isoWeekday() === 1;
+  const isFriday = day.isoWeekday() === 5;
+
+  return (
+    <PickerDay
+      {...other}
+      day={day}
+      outsideCurrentMonth={outsideCurrentMonth}
+      // Vypneme výchozí označení jednoho dne - chceme zvýraznit celý týden
+      selected={false}
+      sx={{
+        borderRadius: 0, // výchozí kolečko zrušíme pro všechny dny
+        ...(inWeek && {
+          // Barva pozadí z tématu
+          bgcolor: "primary.main",
+          color: "white",
+          // Pondělí - zaoblení vlevo, pátek - zaoblení vpravo, střed - bez zaoblení
+          // Výsledek: kapslový tvar přes celý týden Po ╭──────────╮ Pá
+          borderRadius: isMonday
+            ? "50% 0 0 50%"
+            : isFriday
+            ? "0 50% 50% 0"
+            : "0",
+          "&:hover": { bgcolor: "primary.dark" },
+          "&:focus": { bgcolor: "primary.dark" },
+        }),
+      }}
+    />
+  );
+}
+
 function GeneratorPage() {
   // Vybraný datum v DatePickeru (dayjs objekt). Výchozí = dnešní datum.
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  // Počty jídel pro generování
-  const [soupCount, setSoupCount] = useState(1);
-  const [mainCourseCount, setMainCourseCount] = useState(5);
+  // Počty jídel pro generování - string, aby uživatel mohl pole dočasně vyprázdnit při psaní
+  const [soupCount, setSoupCount] = useState("1");
+  const [mainCourseCount, setMainCourseCount] = useState("3");
+
+  // Validační chyby pro jednotlivá pole (null = bez chyby)
+  const [soupError, setSoupError] = useState(null);
+  const [mainError, setMainError] = useState(null);
 
   // weekDays = pole MenuDay objektů pro vybraný týden (max. 5)
   const [weekDays, setWeekDays] = useState([]);
@@ -145,9 +212,26 @@ function GeneratorPage() {
 
   // ---- Handlery pro akce ----
 
+  // Ověří, že zadaná hodnota je celé číslo v rozsahu 1–10.
+  // Vrátí chybový text, nebo null pokud je hodnota platná.
+  function validateCount(value) {
+    const n = parseInt(value, 10);
+    if (isNaN(n) || String(value).trim() === "") return "Zadejte číslo mezi 1 a 10.";
+    if (n < 1 || n > 10) return "Zadejte číslo mezi 1 a 10.";
+    return null;
+  }
+
   async function handleGenerate() {
     setError("");
     setConfirmGenerate(false);
+
+    // Validace vstupů před odesláním na backend.
+    // Chyby zobrazíme přímo u polí (ne jako globální alert).
+    const soupErr = validateCount(soupCount);
+    const mainErr = validateCount(mainCourseCount);
+    setSoupError(soupErr);
+    setMainError(mainErr);
+    if (soupErr || mainErr) return; // zastavíme generování
 
     // Pokud existuje menu, smažeme všechny dny před přegenerováním.
     // for...of = synchronní iterace (await v cyklu funguje správně)
@@ -161,8 +245,8 @@ function GeneratorPage() {
     try {
       const result = await generateMenu({
         weekStartDate: weekMonday,
-        soupCount,
-        mainCourseCount,
+        soupCount: parseInt(soupCount, 10),
+        mainCourseCount: parseInt(mainCourseCount, 10),
       });
       setWeekDays(result.itemList || []);
     } catch (e) {
@@ -212,16 +296,23 @@ function GeneratorPage() {
           {/* Výběr týdne */}
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Vyber datum
+              Vyber týden, pro který chceš vygenerovat menu. 
             </Typography>
-            {/* DatePicker - uživatel vybere libovolné datum, my z něj vypočítáme pondělí */}
+            {/*
+              DatePicker s vlastním vykreslením dnů (slots.day = WeekDay).
+              onChange snapne výběr vždy na pondělí daného týdne -
+              uživatel klikne na středu, v poli se zobrazí pondělí téhož týdne.
+              slotProps.day předá weekYear a weekNumber do WeekDay komponenty,
+              aby věděla, který týden má zvýraznit.
+            */}
             <DatePicker
               value={selectedDate}
-              onChange={(v) => setSelectedDate(v)}
-              // format pro zobrazení v poli (D.M.YYYY = 11.5.2026)
+              onChange={(v) => v && setSelectedDate(v.isoWeekday(1))}
               format="D.M.YYYY"
+              slots={{ day: WeekDay }}
               slotProps={{
                 textField: { size: "small", sx: { maxWidth: 200 } },
+                day: { weekYear, weekNumber },
               }}
             />
             {/* Informativní text pod date pickerem */}
@@ -240,13 +331,21 @@ function GeneratorPage() {
               Zadejete počet polévek a hlavních jídel pro generování
             </Typography>
             <Box sx={{ display: "flex", gap: 2, flexDirection: "column", alignItems: "center" }}>
+              {/*
+                error={Boolean(soupError)} = červené ohraničení pole při chybě
+                helperText = text pod polem (zobrazí se jen při chybě)
+                onChange nechá uživatele psát volně - validace proběhne až při kliknutí Generovat.
+                setSoupError(null) vždy při změně hodnoty = chyba zmizí, jakmile uživatel začne psát.
+              */}
               <TextField
                 label="Polévky"
                 type="number"
                 size="small"
                 value={soupCount}
-                onChange={(e) => setSoupCount(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => { setSoupCount(e.target.value); setSoupError(null); }}
                 inputProps={{ min: 1, max: 10 }}
+                error={Boolean(soupError)}
+                helperText={soupError}
                 sx={{ width: 140 }}
               />
               <TextField
@@ -254,8 +353,10 @@ function GeneratorPage() {
                 type="number"
                 size="small"
                 value={mainCourseCount}
-                onChange={(e) => setMainCourseCount(Math.max(1, parseInt(e.target.value) || 1))}
+                onChange={(e) => { setMainCourseCount(e.target.value); setMainError(null); }}
                 inputProps={{ min: 1, max: 10 }}
+                error={Boolean(mainError)}
+                helperText={mainError}
                 sx={{ width: 140 }}
               />
             </Box>
@@ -267,10 +368,11 @@ function GeneratorPage() {
               variant="contained"
               startIcon={<AutoFixHighIcon />}
               // Pokud existuje menu, zobrazíme potvrzovací dialog. Jinak generujeme přímo.
+              // Tlačítko je také zakázáno pokud jsou aktivní chyby validace u vstupních polí.
               onClick={() =>
                 weekDays.length > 0 ? setConfirmGenerate(true) : handleGenerate()
               }
-              disabled={loading}
+              disabled={loading || Boolean(soupError) || Boolean(mainError)}
             >
               {weekDays.length > 0 ? "Přegenerovat menu" : "Generovat menu"}
             </Button>

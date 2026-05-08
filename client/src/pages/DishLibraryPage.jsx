@@ -19,6 +19,7 @@ import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
 import Alert from "@mui/material/Alert";
 import Paper from "@mui/material/Paper";
+import Snackbar from "@mui/material/Snackbar";
 import { DataGrid } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -47,6 +48,9 @@ function DishLibraryPage() {
   // deleteTarget = jídlo které chceme smazat (null = žádné)
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteError, setDeleteError] = useState("");
+
+  // toast = zpráva pro Snackbar (null = skrytý). message + severity (success/error).
+  const [toast, setToast] = useState(null);
 
   // useCallback zapamatuje funkci mezi rendery.
   // Bez useCallback by se funkce vytvářela při každém renderu a způsobovala
@@ -81,8 +85,8 @@ function DishLibraryPage() {
   }
 
   // Zavolá se po úspěšném uložení (vytvoření nebo úpravě) jídla.
-  // Aktualizuje seznam bez nutnosti znovu volat API.
-  function handleSaved(saved) {
+  // Aktualizuje seznam bez nutnosti znovu volat API a zobrazí toast.
+  function handleSaved(saved, isNew) {
     setRows((prev) => {
       const idx = prev.findIndex((r) => r.id === saved.id);
       if (idx >= 0) {
@@ -94,6 +98,10 @@ function DishLibraryPage() {
       // Přidání: připojíme nový řádek na konec
       return [...prev, saved];
     });
+    // Zobrazíme toast jen při vytvoření nového jídla (ne při úpravě)
+    if (isNew) {
+      setToast({ message: "Jídlo bylo úspěšně vytvořeno a přidáno do knihovny.", severity: "success" });
+    }
   }
 
   async function handleDeleteConfirm() {
@@ -255,6 +263,29 @@ function DishLibraryPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {/*
+        Snackbar = dočasná zpráva ("toast") v dolní části obrazovky.
+        autoHideDuration={5000} = zmizí automaticky po 5 sekundách (v ms).
+        onClose se zavolá po uplynutí času nebo při kliknutí mimo - vymažeme toast.
+        anchorOrigin určuje pozici: bottom + center = dole uprostřed.
+      */}
+      <Snackbar
+        open={Boolean(toast)}
+        autoHideDuration={5000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        {/* Alert uvnitř Snackbaru dá toastu barevný styl (zelený pro success) */}
+        <Alert
+          onClose={() => setToast(null)}
+          severity={toast?.severity ?? "success"}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {toast?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

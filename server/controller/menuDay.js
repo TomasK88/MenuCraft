@@ -158,7 +158,7 @@ router.get("/list", ListAbl);
  * @openapi
  * /menuDay/generate:
  *   post:
- *     summary: "UC01: Vygeneruje týdenní menu (5x MenuDay ve stavu DRAFT)"
+ *     summary: "Vygeneruje týdenní menu"
  *     tags:
  *       - MenuDay
  *     requestBody:
@@ -211,7 +211,7 @@ router.post("/generate", GenerateAbl);
  * @openapi
  * /menuDay/update:
  *   post:
- *     summary: "UC02: Záměna jídla v DRAFT menu"
+ *     summary: "Změna jídla v DRAFT menu"
  *     tags:
  *       - MenuDay
  *     requestBody:
@@ -231,10 +231,19 @@ router.post("/generate", GenerateAbl);
  *                 type: array
  *                 minItems: 1
  *                 items:
- *                   $ref: '#/components/schemas/DishRef'
+ *                   type: object
+ *                   required:
+ *                     - dishId
+ *                   properties:
+ *                     dishId:
+ *                       type: string
+ *                       example: a3f12b8c9d4e5f6a7b8c9d0e
+ *                     position:
+ *                       type: integer
+ *                       example: 0
  *     responses:
  *       200:
- *         description: Aktualizovaný MenuDay
+ *         description: Aktualizovaný MenuDay (cena je doplněna automaticky z katalogu)
  *         content:
  *           application/json:
  *             schema:
@@ -254,7 +263,7 @@ router.post("/update", UpdateAbl);
  * @openapi
  * /menuDay/approve:
  *   post:
- *     summary: "UC03: Schválí celý týden (DRAFT → PUBLISHED)"
+ *     summary: "Schválí celý týden"
  *     tags:
  *       - MenuDay
  *     requestBody:

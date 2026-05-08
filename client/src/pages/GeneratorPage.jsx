@@ -124,7 +124,7 @@ function GeneratorPage() {
   useEffect(() => {
     getDishList()
       .then((d) => setAllDishes(d.itemList || []))
-      .catch(() => {}); // chybu ignorujeme - jen se nezobrazí názvy
+      .catch(() => { }); // chybu ignorujeme - jen se nezobrazí názvy
   }, []);
 
   // Mapa { dishId → dish objekt } pro rychlý přístup O(1) místo .find() O(n)
@@ -275,8 +275,8 @@ function GeneratorPage() {
               {weekDays.length > 0 ? "Přegenerovat menu" : "Generovat menu"}
             </Button>
 
-            
-           
+
+
           </Box>
         </Box>
       </Paper>
@@ -285,53 +285,53 @@ function GeneratorPage() {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       {/* ---- Sekce pro zobrazení menu ---- */}
- <Box
-  sx={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    mb: 2,
-    position: "relative",
-  }}
->
-  {/* Levá část */}
-  <Box>
-    {allDraft && (
-      <Button
-        variant="outlined"
-        color="success"
-        startIcon={<CheckCircleIcon />}
-        onClick={() => setConfirmApprove(true)}
-        disabled={loading}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 2,
+          position: "relative",
+        }}
       >
-        Schválit týden
-      </Button>
-    )}
-  </Box>
+        {/* Levá část */}
+        <Box>
+          {allDraft && (
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<CheckCircleIcon />}
+              onClick={() => setConfirmApprove(true)}
+              disabled={loading}
+            >
+              Schválit týden
+            </Button>
+          )}
+        </Box>
 
-  {/* Nadpis přesně uprostřed */}
-  <Typography
-    variant="h4"
-    sx={{
-      position: "absolute",
-      left: "50%",
-      transform: "translateX(-50%)",
-    }}
-  >
-    Polední menu
-  </Typography>
+        {/* Nadpis přesně uprostřed */}
+        <Typography
+          variant="h4"
+          sx={{
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+          }}
+        >
+          Polední menu
+        </Typography>
 
-  {/* Pravá část */}
-  <Box>
-    {weekDays.length > 0 && (
-      <Chip
-        label={allPublished ? "Schváleno" : "Koncept"}
-        color={allPublished ? "success" : "default"}
-        size="small"
-      />
-    )}
-  </Box>
-</Box>
+        {/* Pravá část */}
+        <Box>
+          {weekDays.length > 0 && (
+            <Chip
+              label={allPublished ? "Schváleno" : "Koncept"}
+              color={allPublished ? "success" : "default"}
+              size="small"
+            />
+          )}
+        </Box>
+      </Box>
 
       {/* Spinner při načítání */}
       {loading && (
@@ -388,44 +388,55 @@ function GeneratorPage() {
                     borderWidth: day.status === "PUBLISHED" ? 2 : 1,
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1, pb: 0 }}>
+                  <CardContent sx={{ flexGrow: 1, pb: 0, textAlign: "left" }}>
                     {/* Záhlaví karty: název dne + datum + stav */}
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
-                      <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 0.5, justifyContent: "flex-end", position: "relative", minHeight: 32 }}>
+                      <Typography variant="h5" sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
                         {DAY_LABELS[day.dayOfWeek]}
                       </Typography>
-                      <Chip
-                        label={day.status === "PUBLISHED" ? "✓" : "Návrh"}
-                        size="small"
-                        color={day.status === "PUBLISHED" ? "success" : "default"}
-                        sx={{ height: 20, fontSize: 11 }}
-                      />
+                      {day.status === "PUBLISHED" ? (
+                        <CheckCircleIcon
+                          color="success"
+                          sx={{ fontSize: 22 }}
+                        />
+                      ) : (
+                        <Chip
+                          label="Návrh"
+                          size="small"
+                          sx={{ height: 20, fontSize: 11 }}
+                        />
+                      )}
                     </Box>
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                    <Typography variant="subtitle2" color="text.secondary" display="block" sx={{ mb: 1, textAlign: "Center" }}>
                       {dayDate}
                     </Typography>
 
                     <Divider sx={{ mb: 1 }} />
-
+<Typography variant="subtitle2" color="text.secondary" display="block" sx={{ mb: 1,  textAlign: "Left", fontWeight: "bold" }}>
+                      Polévky
+                    </Typography>
                     {/* Polévky */}
                     {soups.map((d) => (
                       <DishRow
                         key={d.dishId}
                         name={getDishName(d.dishId)}
                         price={d.price}
-                        category="SOUP"
+                        //category="SOUP"
                         canSwap={day.status === "DRAFT"}
                         onSwap={() => handleChangeDish(day, d, "SOUP")}
                       />
                     ))}
-
+ <Divider sx={{ mb: 1 }} />
+ <Typography variant="subtitle2" color="text.secondary" display="block" sx={{ mb: 1,  textAlign: "Left", fontWeight: "bold" }}>
+                      Hlavní jídla
+                    </Typography>
                     {/* Hlavní jídla */}
                     {mains.map((d) => (
                       <DishRow
                         key={d.dishId}
                         name={getDishName(d.dishId)}
                         price={d.price}
-                        category="MAIN_COURSE"
+                        //category="MAIN_COURSE"
                         canSwap={day.status === "DRAFT"}
                         onSwap={() => handleChangeDish(day, d, "MAIN_COURSE")}
                       />

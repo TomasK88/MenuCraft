@@ -33,7 +33,7 @@ function Navbar() {
     <AppBar position="static" elevation={0}>
       <Toolbar sx={{ gap: 1 }}>
         {/* Logo sekce - ikona + název aplikace */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1 }}>
+        <Box component={Link} to="/" sx={{ display: "flex", alignItems: "center", gap: 1, flexGrow: 1, textDecoration: "none", "&:hover": { textDecoration: "none" } }}>
           <Box
             sx={{
               // Kulatý fialový kruh kolem ikony - vizuální identita aplikace

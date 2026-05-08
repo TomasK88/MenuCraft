@@ -40,7 +40,7 @@ const schema = {
           price: { type: "number", minimum: 0 },
           position: { type: "integer", minimum: 0 },
         },
-        required: ["dishId", "price"], // position je volitelná
+        required: ["dishId"], // position je volitelná
         additionalProperties: false,
       },
       minItems: 1, // dishes nesmí být prázdné pole

@@ -1,17 +1,23 @@
 // =====================================================
-// ABL: Dish - DELETE (odstranění jídla)
+// abl/dish/deleteAbl.js - smazání jídla
 // -----------------------------------------------------
 // POST /dish/delete
-// Body (JSON): { "id": "..." }
+// Tělo požadavku (JSON):
+//   { "id": "a3f12b8c..." }
 //
-// Pokud je Dish referencován z některého MenuDay (DRAFT i PUBLISHED),
-// mazání zablokujeme a vrátíme chybu (E1 v BUC-4).
-// Uživatel má místo toho nastavit isActive=false.
+// Ochrana referenční integrity:
+//   Pokud je jídlo použito v jakémkoliv MenuDay (ať DRAFT
+//   nebo PUBLISHED), mazání se ZABLOKUJE a vrátí se chyba.
+//   Důvod: smazáním by vznikly "visící" vazby - MenuDay
+//   by odkazoval na neexistující jídlo.
+//   Řešení pro uživatele: nastavit isActive=false místo mazání.
 // =====================================================
 
 const Ajv = require("ajv");
 const ajv = new Ajv();
 
+// Potřebujeme oba DAO - dishDao pro samotné smazání
+// a menuDayDao pro kontrolu, zda na jídlo někdo neodkazuje
 const dishDao = require("../../dao/dish-dao.js");
 const menuDayDao = require("../../dao/menuDay-dao.js");
 
@@ -26,6 +32,7 @@ async function DeleteAbl(req, res) {
   try {
     const reqParams = req.body;
 
+    // Validace - id je povinné
     const valid = ajv.validate(schema, reqParams);
     if (!valid) {
       res.status(400).json({
@@ -36,19 +43,25 @@ async function DeleteAbl(req, res) {
       return;
     }
 
-    // Zjistíme, jestli je dish použit v nějakém MenuDay
+    // Zkontrolujeme referenční integritu - hledáme MenuDay záznamy,
+    // které odkazují na toto jídlo přes pole dishes[].dishId
     const usedIn = menuDayDao.listByDishId(reqParams.id);
+
     if (usedIn.length) {
+      // Jídlo se nesmí smazat - vrátíme seznam id MenuDay záznamů,
+      // které ho využívají, aby uživatel věděl, kde je použito
       res.status(400).json({
         code: "dishUsedInMenuDay",
-        message:
-          "Dish nelze smazat, protože je použit v existujícím menu. Nastav isActive=false.",
-        usedInMenuDayIds: usedIn.map((md) => md.id),
+        message: "Dish nelze smazat, protože je použit v existujícím menu. Nastav isActive=false.",
+        usedInMenuDayIds: usedIn.map((md) => md.id), // .map() extrahuje jen id z každého objektu
       });
       return;
     }
 
+    // Jídlo nikde není použito - bezpečně ho smažeme
     dishDao.remove(reqParams.id);
+
+    // Odpověď je prázdný objekt - operace proběhla úspěšně, není co vracet
     res.json({});
   } catch (e) {
     res.status(500).json({ message: e.message });

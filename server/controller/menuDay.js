@@ -1,15 +1,16 @@
 // =====================================================
-// Controller pro entitu MenuDay
+// controller/menuDay.js - router pro entitu MenuDay
 // -----------------------------------------------------
-// Mapuje HTTP endpointy na ABL operace.
+// Stejný princip jako controller/dish.js - mapuje URL
+// na ABL funkce. Viz dish.js pro vysvětlení architektury.
 //
-// Endpointy:
-//   GET  /menuDay/get?id=...
-//   GET  /menuDay/list[?year=&weekNumber=&status=&date=]
-//   POST /menuDay/generate    -> BUC-1
-//   POST /menuDay/update      -> BUC-2 (záměna jídla)
-//   POST /menuDay/approve     -> BUC-3 (schválení 5 dnů)
-//   POST /menuDay/delete      -> volitelné (správa)
+// Endpointy MenuDay:
+//   GET  /menuDay/get?id=...          → načtení jednoho MenuDay
+//   GET  /menuDay/list[?filtry]       → výpis (rok, týden, status, datum)
+//   POST /menuDay/generate            → UC01: vygenerování týdenního menu
+//   POST /menuDay/update              → UC02: záměna jídla v DRAFT menu
+//   POST /menuDay/approve             → UC03: schválení celého týdne (DRAFT→PUBLISHED)
+//   POST /menuDay/delete              → smazání záznamu (správa/testování)
 // =====================================================
 
 const express = require("express");

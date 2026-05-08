@@ -1,5 +1,5 @@
 // =====================================================
-// ABL: MenuDay - GET (načtení jednoho MenuDay podle id)
+// abl/menuDay/getAbl.js - načtení jednoho MenuDay podle id
 // -----------------------------------------------------
 // GET /menuDay/get?id=<menuDayId>
 // =====================================================
@@ -17,6 +17,8 @@ const schema = {
 
 async function GetAbl(req, res) {
   try {
+    // Id přichází jako query parametr: /menuDay/get?id=abc
+    // Viz dish/getAbl.js pro vysvětlení req.query?.id ternárního výrazu
     const reqParams = req.query?.id ? req.query : req.body;
 
     const valid = ajv.validate(schema, reqParams);
@@ -29,7 +31,9 @@ async function GetAbl(req, res) {
       return;
     }
 
+    // Načteme MenuDay ze souboru
     const menuDay = menuDayDao.get(reqParams.id);
+
     if (!menuDay) {
       res.status(404).json({
         code: "menuDayNotFound",

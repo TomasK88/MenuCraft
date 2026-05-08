@@ -1,13 +1,13 @@
 // =====================================================
-// ABL: MenuDay - DELETE (volitelné: smazání MenuDay)
+// abl/menuDay/deleteAbl.js - smazání MenuDay záznamu
 // -----------------------------------------------------
 // POST /menuDay/delete
-// Body (JSON): { "id": "..." }
+// Tělo požadavku (JSON): { "id": "..." }
 //
-// Smaže jeden MenuDay záznam. Slouží spíš pro testování / správu;
-// běžný uživatel mazat MenuDay nebude. PUBLISHED MenuDay je možné
-// smazat jen explicitním nastavením force=true (tady nezavádíme,
-// pro jednoduchost povolíme smazání i PUBLISHED).
+// Slouží primárně pro testování a správu dat.
+// Smaže jeden konkrétní MenuDay - funguje pro DRAFT i PUBLISHED.
+// V běžném provozu uživatel MenuDay záznamy nemaže - zůstávají
+// jako historické záznamy pro pozdější přehled.
 // =====================================================
 
 const Ajv = require("ajv");
@@ -26,6 +26,7 @@ async function DeleteAbl(req, res) {
   try {
     const reqParams = req.body;
 
+    // Validace - id je povinné
     const valid = ajv.validate(schema, reqParams);
     if (!valid) {
       res.status(400).json({
@@ -36,7 +37,11 @@ async function DeleteAbl(req, res) {
       return;
     }
 
+    // Smažeme soubor přes DAO. DAO vrátí {} i když soubor neexistoval
+    // (ENOENT ignoruje) - mazání neexistujícího záznamu není chyba.
     menuDayDao.remove(reqParams.id);
+
+    // Prázdná úspěšná odpověď
     res.json({});
   } catch (e) {
     res.status(500).json({ message: e.message });

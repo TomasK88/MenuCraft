@@ -1,22 +1,22 @@
 // =====================================================
-// ABL: MenuDay - UPDATE (BUC-2: úprava menu - záměna jídla)
+// abl/menuDay/updateAbl.js - záměna jídla v menu (UC02)
 // -----------------------------------------------------
 // POST /menuDay/update
-// Body (JSON):
+// Tělo požadavku (JSON):
 //   {
 //     "id": "<menuDayId>",
 //     "dishes": [
-//        { "dishId": "...", "price": 159, "position": 0 },
-//        { "dishId": "...", "price": 49,  "position": 1 }
+//       { "dishId": "...", "price": 149, "position": 0 },
+//       { "dishId": "...", "price": 49,  "position": 1 }
 //     ]
 //   }
 //
 // Pravidla:
-//   - update lze dělat jen na MenuDay ve stavu DRAFT
-//     (PUBLISHED je read-only). Vrací 400.
-//   - počet dishes musí odpovídat původnímu počtu (zachovává sloty).
-//   - každý dishId musí existovat a být isActive.
-//   - cena (price) se cíleně ukládá ve VAZBĚ (komentář učitele).
+//   - Editovat lze POUZE MenuDay ve stavu DRAFT.
+//     PUBLISHED menu je read-only (finální, zveřejněné).
+//   - Každé dishId musí existovat v knihovně a být aktivní.
+//   - Price se posílá v požadavku - uživatel může cenu
+//     pro konkrétní den ručně upravit (např. slevová akce).
 // =====================================================
 
 const Ajv = require("ajv");
@@ -25,6 +25,7 @@ const ajv = new Ajv();
 const menuDayDao = require("../../dao/menuDay-dao.js");
 const dishDao = require("../../dao/dish-dao.js");
 
+// Schéma validuje jak id MenuDay, tak strukturu každé vazby v dishes
 const schema = {
   type: "object",
   properties: {
@@ -32,16 +33,17 @@ const schema = {
     dishes: {
       type: "array",
       items: {
+        // Každá položka v dishes musí mít tuto strukturu
         type: "object",
         properties: {
           dishId: { type: "string" },
           price: { type: "number", minimum: 0 },
           position: { type: "integer", minimum: 0 },
         },
-        required: ["dishId", "price"],
+        required: ["dishId", "price"], // position je volitelná
         additionalProperties: false,
       },
-      minItems: 1,
+      minItems: 1, // dishes nesmí být prázdné pole
     },
   },
   required: ["id", "dishes"],
@@ -52,7 +54,7 @@ async function UpdateAbl(req, res) {
   try {
     const dtoIn = req.body;
 
-    // 1) Validace vstupu
+    // 1) Validace struktury vstupu
     const valid = ajv.validate(schema, dtoIn);
     if (!valid) {
       res.status(400).json({
@@ -63,7 +65,7 @@ async function UpdateAbl(req, res) {
       return;
     }
 
-    // 2) Existence MenuDay
+    // 2) Ověříme, že MenuDay s tímto id existuje
     const current = menuDayDao.get(dtoIn.id);
     if (!current) {
       res.status(404).json({
@@ -73,7 +75,7 @@ async function UpdateAbl(req, res) {
       return;
     }
 
-    // 3) Editovat lze jen DRAFT
+    // 3) Editovat lze jen DRAFT - PUBLISHED je finální a read-only
     if (current.status !== "DRAFT") {
       res.status(400).json({
         code: "menuDayNotEditable",
@@ -82,9 +84,12 @@ async function UpdateAbl(req, res) {
       return;
     }
 
-    // 4) Ověření, že všechny dishId existují a jsou aktivní
+    // 4) Ověříme, že každé zadané jídlo existuje a je aktivní.
+    //    Procházíme přes for...of - styl, který umožňuje použít return/break.
+    //    (Alternativa .forEach() return dovnitř cyklu nestopne celou funkci.)
     for (const item of dtoIn.dishes) {
       const dish = dishDao.get(item.dishId);
+
       if (!dish) {
         res.status(400).json({
           code: "dishNotFound",
@@ -92,6 +97,8 @@ async function UpdateAbl(req, res) {
         });
         return;
       }
+
+      // Deaktivované jídlo (isActive=false) nesmí jít do menu
       if (!dish.isActive) {
         res.status(400).json({
           code: "dishNotActive",
@@ -101,7 +108,9 @@ async function UpdateAbl(req, res) {
       }
     }
 
-    // 5) Uložení
+    // 5) Vše v pořádku - uložíme nové pole dishes do MenuDay.
+    //    DAO update sloučí { id, dishes } s aktuálním stavem -
+    //    přepíše jen pole dishes, ostatní atributy (status, date...) zůstanou.
     const updated = menuDayDao.update({ id: dtoIn.id, dishes: dtoIn.dishes });
     res.json(updated);
   } catch (e) {

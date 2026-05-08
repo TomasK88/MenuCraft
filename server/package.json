@@ -1,16 +1,20 @@
 {
-  "name": "menucraft",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "name": "menucraft-server",
+  "version": "1.0.0",
+  "description": "MenuCraft - backend. Aplikace pro automatizaci tvorby denních obědových menu.",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "seed": "node seed.js",
+    "clean": "node clean.js",
+    "smoke": "node smoke-test.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "author": "Tomáš Kulhánek",
+  "license": "MIT",
   "dependencies": {
-    "express": "^5.2.1"
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.1"
   }
 }

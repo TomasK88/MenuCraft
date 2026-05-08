@@ -1,16 +1,11 @@
 // =====================================================
-// ABL: Dish - CREATE (vytvoření nového jídla)
+// ABL: Dish - UPDATE (úprava existujícího jídla)
 // -----------------------------------------------------
-// POST /dish/create
+// POST /dish/update
 // Body (JSON):
-//   {
-//     "name": "Svíčková",
-//     "category": "MAIN_COURSE",        // SOUP | MAIN_COURSE
-//     "price": 149,                      // aktuální ceníková cena (Kč)
-//     "description": "Hovězí ...",      // volitelné
-//     "allergens": [1, 7],              // volitelné, EU 1-14
-//     "isActive": true                   // volitelné, default true
-//   }
+//   { "id": "...", "name"?, "category"?, "price"?,
+//     "description"?, "allergens"?, "isActive"? }
+// Měnit lze libovolnou podmnožinu atributů.
 // =====================================================
 
 const Ajv = require("ajv");
@@ -18,10 +13,10 @@ const ajv = new Ajv();
 
 const dishDao = require("../../dao/dish-dao.js");
 
-// JSON schema pro validaci vstupu (dtoIn)
 const schema = {
   type: "object",
   properties: {
+    id: { type: "string" },
     name: { type: "string", minLength: 1 },
     category: { type: "string", enum: ["SOUP", "MAIN_COURSE"] },
     price: { type: "number", minimum: 0 },
@@ -32,15 +27,14 @@ const schema = {
     },
     isActive: { type: "boolean" },
   },
-  required: ["name", "category", "price"],
+  required: ["id"],
   additionalProperties: false,
 };
 
-async function CreateAbl(req, res) {
+async function UpdateAbl(req, res) {
   try {
     const dish = req.body;
 
-    // 1) validace vstupu
     const valid = ajv.validate(schema, dish);
     if (!valid) {
       res.status(400).json({
@@ -51,24 +45,25 @@ async function CreateAbl(req, res) {
       return;
     }
 
-    // 2) doplnění výchozích hodnot
-    if (dish.isActive === undefined) dish.isActive = true;
-    if (!dish.allergens) dish.allergens = [];
-
-    // 3) zápis do storage
-    let created;
+    let updated;
     try {
-      created = dishDao.create(dish);
+      updated = dishDao.update(dish);
     } catch (e) {
       res.status(400).json({ ...e });
       return;
     }
+    if (!updated) {
+      res.status(404).json({
+        code: "dishNotFound",
+        message: `Dish with id ${dish.id} not found`,
+      });
+      return;
+    }
 
-    // 4) odpověď - vytvořený Dish
-    res.json(created);
+    res.json(updated);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
 }
 
-module.exports = CreateAbl;
+module.exports = UpdateAbl;

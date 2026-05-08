@@ -6,25 +6,48 @@
 //   1) Vytvořit Express aplikaci (HTTP server)
 //   2) Zaregistrovat middleware (CORS, JSON parsing)
 //   3) Připojit routery (controllery) pro každou entitu
-//   4) Spustit server na daném portu
+//   4) Zpřístupnit Swagger UI dokumentaci na /swagger
+//   5) Spustit server na daném portu
 // =====================================================
 
-// Express je Node.js framework pro tvorbu HTTP serverů.
-// Bez něj bychom museli psát spoustu kódu ručně (parsování URL,
-// metod, hlaviček atd.). Express to řeší za nás.
 const express = require("express");
-
-// cors = Cross-Origin Resource Sharing. Prohlížeč ve výchozím stavu
-// blokuje požadavky z jiné domény (např. frontend na localhost:5173
-// volá backend na localhost:8888). Middleware cors toto povolí.
 const cors = require("cors");
+
+// swagger-jsdoc čte JSDoc komentáře (@openapi) ze zdrojových souborů
+// a sestaví z nich jeden OpenAPI 3.0 objekt.
+const swaggerJsdoc = require("swagger-jsdoc");
+
+// swagger-ui-express zobrazí OpenAPI objekt jako interaktivní HTML stránku
+// kde lze endpointy rovnou volat přímo z prohlížeče.
+const swaggerUi = require("swagger-ui-express");
 
 // Vytvoříme instanci Express aplikace. Přes proměnnou "app" pak
 // registrujeme vše - middleware, routy, nastavení serveru.
 const app = express();
 
-// Port, na kterém server naslouchá příchozím požadavkům.
-const port = 8888;
+const port = 3000;
+
+// -------------------------------------------------------
+// SWAGGER / OpenAPI konfigurace
+// -------------------------------------------------------
+
+// Základní informace o API + cesty k souborům s @openapi komentáři
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "MenuCraft API",
+      version: "1.0.0",
+      description: "Backend API pro správu jídel a generování týdenního poledního menu.",
+    },
+    servers: [{ url: `http://localhost:${port}`, description: "Lokální vývojový server" }],
+  },
+  // swagger-jsdoc prohledá všechny JS soubory v controller/ složce
+  // a najde v nich komentáře začínající @openapi
+  apis: ["./controller/*.js"],
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
 // -------------------------------------------------------
 // MIDDLEWARE
@@ -49,6 +72,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // -------------------------------------------------------
+// SWAGGER UI - interaktivní dokumentace na /swagger
+// swaggerUi.serve = obsluhuje statické soubory (CSS, JS) UI
+// swaggerUi.setup(spec) = inicializuje UI s naší specifikací
+// -------------------------------------------------------
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// -------------------------------------------------------
 // CONTROLLERY (routery)
 // Každý controller je samostatný Express Router, který sdružuje
 // endpointy pro jednu entitu (Dish, MenuDay).
@@ -56,11 +86,8 @@ app.use(express.urlencoded({ extended: true }));
 const dishController = require("./controller/dish");
 const menuDayController = require("./controller/menuDay");
 
-// Jednoduchá uvítací stránka na kořenové URL "/".
-// Slouží jen k rychlému ověření, že server běží - otevřeš
-// v prohlížeči http://localhost:8888/ a uvidíš text.
 app.get("/", (req, res) => {
-  res.send("MenuCraft backend běží. Použij /dish a /menuDay endpointy.");
+  res.send("MenuCraft backend běží. Dokumentace: http://localhost:3000/swagger");
 });
 
 // Připojení routerů s prefixem URL:
@@ -74,4 +101,5 @@ app.use("/menuDay", menuDayController);
 // Callback (šipková funkce) se zavolá jednou, jakmile je server připraven.
 app.listen(port, () => {
   console.log(`MenuCraft backend naslouchá na portu ${port}`);
+  console.log(`Swagger UI: http://localhost:${port}/swagger`);
 });

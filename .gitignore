@@ -7,6 +7,10 @@
 # Icon must end with two \r
 Icon
 
+### AI ###
+*.claude
+claude.*
+claude/*
 
 # Thumbnails
 ._*
@@ -190,7 +194,4 @@ dist
 # Ignore all local history of files
 .history
 .ionide
-
-### Claude Code ###
-.claude/worktrees/
 

@@ -1,7 +1,7 @@
 // =====================================================
 // abl/menuDay/approveAbl.js - schválení týdenního menu (UC03)
 // -----------------------------------------------------
-// POST /menuDay/approve
+// POST /menu-day/approve
 // Tělo požadavku (JSON):
 //   { "year": 2026, "weekNumber": 20 }
 //

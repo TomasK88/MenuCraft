@@ -91,11 +91,11 @@ app.get("/", (req, res) => {
 });
 
 // Připojení routerů s prefixem URL:
-//   /dish/*    → zpracuje dishController
-//   /menuDay/* → zpracuje menuDayController
+//   /dish/*      → zpracuje dishController
+//   /menu-day/*  → zpracuje menuDayController
 // Např. požadavek na POST /dish/create → dishController → createAbl
 app.use("/dish", dishController);
-app.use("/menuDay", menuDayController);
+app.use("/menu-day", menuDayController);
 
 // Spuštění serveru - začne naslouchat na zadaném portu.
 // Callback (šipková funkce) se zavolá jednou, jakmile je server připraven.

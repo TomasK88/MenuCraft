@@ -1,10 +1,10 @@
 // =====================================================
 // abl/menuDay/listAbl.js - výpis MenuDay objektů
 // -----------------------------------------------------
-// GET /menuDay/list                          → vše
-// GET /menuDay/list?year=2026&weekNumber=20  → konkrétní týden
-// GET /menuDay/list?status=DRAFT             → jen drafty
-// GET /menuDay/list?date=2026-05-11          → konkrétní den
+// GET /menu-day/list                          → vše
+// GET /menu-day/list?year=2026&weekNumber=20  → konkrétní týden
+// GET /menu-day/list?status=DRAFT             → jen drafty
+// GET /menu-day/list?date=2026-05-11          → konkrétní den
 //
 // Filtry lze kombinovat libovolně.
 // =====================================================

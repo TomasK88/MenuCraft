@@ -73,27 +73,27 @@ export function deleteDish(id) {
 // Vrátí seznam MenuDay objektů. Volitelný filtr: { year, weekNumber, status, date }
 export function getMenuDayList(params = {}) {
   const q = new URLSearchParams(params).toString();
-  return request(`/menuDay/list${q ? "?" + q : ""}`);
+  return request(`/menu-day/list${q ? "?" + q : ""}`);
 }
 
 // UC01: Vygeneruje 5 MenuDay objektů (Po–Pá) ve stavu DRAFT.
 // body = { weekStartDate: "2026-05-11", soupCount: 1, mainCourseCount: 3 }
 export function generateMenu(body) {
-  return request("/menuDay/generate", { method: "POST", body: JSON.stringify(body) });
+  return request("/menu-day/generate", { method: "POST", body: JSON.stringify(body) });
 }
 
 // UC03: Schválí celý týden (změní všechny DRAFT → PUBLISHED).
 // body = { year: 2026, weekNumber: 20 }
 export function approveMenu(body) {
-  return request("/menuDay/approve", { method: "POST", body: JSON.stringify(body) });
+  return request("/menu-day/approve", { method: "POST", body: JSON.stringify(body) });
 }
 
 // UC02: Zamění jídlo v jednom dni. body = { id, dishes: [...] }
 export function updateMenuDay(body) {
-  return request("/menuDay/update", { method: "POST", body: JSON.stringify(body) });
+  return request("/menu-day/update", { method: "POST", body: JSON.stringify(body) });
 }
 
 // Smaže jeden MenuDay záznam (pro reset před přegenerováním)
 export function deleteMenuDay(id) {
-  return request("/menuDay/delete", { method: "POST", body: JSON.stringify({ id }) });
+  return request("/menu-day/delete", { method: "POST", body: JSON.stringify({ id }) });
 }

@@ -1,7 +1,7 @@
 // =====================================================
 // abl/menuDay/deleteAbl.js - smazání MenuDay záznamu
 // -----------------------------------------------------
-// POST /menuDay/delete
+// POST /menu-day/delete
 // Tělo požadavku (JSON): { "id": "..." }
 //
 // Slouží primárně pro testování a správu dat.

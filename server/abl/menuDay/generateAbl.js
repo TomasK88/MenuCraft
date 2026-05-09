@@ -1,7 +1,7 @@
 // =====================================================
 // abl/menuDay/generateAbl.js - vygenerování týdenního menu (UC01)
 // -----------------------------------------------------
-// POST /menuDay/generate
+// POST /menu-day/generate
 // Tělo požadavku (JSON):
 //   {
 //     "weekStartDate": "2026-05-11",  // pondělí týdne (YYYY-MM-DD)

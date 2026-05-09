@@ -70,12 +70,12 @@ const DeleteAbl = require("../abl/menuDay/deleteAbl");
  */
 
 // -------------------------------------------------------
-// GET /menuDay/get
+// GET /menu-day/get
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/get:
+ * /menu-day/get:
  *   get:
  *     summary: Načte jeden MenuDay podle id
  *     tags:
@@ -100,12 +100,12 @@ const DeleteAbl = require("../abl/menuDay/deleteAbl");
 router.get("/get", GetAbl);
 
 // -------------------------------------------------------
-// GET /menuDay/list
+// GET /menu-day/list
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/list:
+ * /menu-day/list:
  *   get:
  *     summary: Výpis MenuDay objektů (s volitelnými filtry)
  *     tags:
@@ -151,12 +151,12 @@ router.get("/get", GetAbl);
 router.get("/list", ListAbl);
 
 // -------------------------------------------------------
-// POST /menuDay/generate
+// POST /menu-day/generate
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/generate:
+ * /menu-day/generate:
  *   post:
  *     summary: "Vygeneruje týdenní menu"
  *     tags:
@@ -204,12 +204,12 @@ router.get("/list", ListAbl);
 router.post("/generate", GenerateAbl);
 
 // -------------------------------------------------------
-// POST /menuDay/update
+// POST /menu-day/update
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/update:
+ * /menu-day/update:
  *   post:
  *     summary: "Změna jídla v DRAFT menu"
  *     tags:
@@ -256,12 +256,12 @@ router.post("/generate", GenerateAbl);
 router.post("/update", UpdateAbl);
 
 // -------------------------------------------------------
-// POST /menuDay/approve
+// POST /menu-day/approve
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/approve:
+ * /menu-day/approve:
  *   post:
  *     summary: "Schválí celý týden"
  *     tags:
@@ -300,12 +300,12 @@ router.post("/update", UpdateAbl);
 router.post("/approve", ApproveAbl);
 
 // -------------------------------------------------------
-// POST /menuDay/delete
+// POST /menu-day/delete
 // -------------------------------------------------------
 
 /**
  * @openapi
- * /menuDay/delete:
+ * /menu-day/delete:
  *   post:
  *     summary: Smaže jeden MenuDay záznam
  *     tags:

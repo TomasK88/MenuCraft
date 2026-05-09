@@ -1,7 +1,7 @@
 // =====================================================
 // abl/menuDay/getAbl.js - načtení jednoho MenuDay podle id
 // -----------------------------------------------------
-// GET /menuDay/get?id=<menuDayId>
+// GET /menu-day/get?id=<menuDayId>
 // =====================================================
 
 const Ajv = require("ajv");
@@ -17,7 +17,7 @@ const schema = {
 
 async function GetAbl(req, res) {
   try {
-    // Id přichází jako query parametr: /menuDay/get?id=abc
+    // Id přichází jako query parametr: /menu-day/get?id=abc
     // Viz dish/getAbl.js pro vysvětlení req.query?.id ternárního výrazu
     const reqParams = req.query?.id ? req.query : req.body;
 

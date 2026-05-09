@@ -1,7 +1,7 @@
 // =====================================================
 // abl/menuDay/updateAbl.js - záměna jídla v menu (UC02)
 // -----------------------------------------------------
-// POST /menuDay/update
+// POST /menu-day/update
 // Tělo požadavku (JSON):
 //   {
 //     "id": "<menuDayId>",

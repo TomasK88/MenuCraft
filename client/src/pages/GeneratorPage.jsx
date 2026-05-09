@@ -326,7 +326,7 @@ function GeneratorPage() {
           </Box>
 
           {/* Počty jídel */}
-          <Box alignItems="center">
+          <Box>
             <Typography variant="h6" color="text.secondary" sx={{ mb: 0.5 }}>
               Zadejete počet polévek a hlavních jídel pro generování
             </Typography>
@@ -343,7 +343,7 @@ function GeneratorPage() {
                 size="small"
                 value={soupCount}
                 onChange={(e) => { setSoupCount(e.target.value); setSoupError(null); }}
-                inputProps={{ min: 1, max: 10 }}
+                slotProps={{ min: 1, max: 10 }}
                 error={Boolean(soupError)}
                 helperText={soupError}
                 sx={{ width: 140 }}
@@ -354,7 +354,7 @@ function GeneratorPage() {
                 size="small"
                 value={mainCourseCount}
                 onChange={(e) => { setMainCourseCount(e.target.value); setMainError(null); }}
-                inputProps={{ min: 1, max: 10 }}
+                slotProps={{ min: 1, max: 10 }}
                 error={Boolean(mainError)}
                 helperText={mainError}
                 sx={{ width: 140 }}

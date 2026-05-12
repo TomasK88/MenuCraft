@@ -59,6 +59,7 @@ import {
 import { DAY_LABELS, DAY_ORDER, CATEGORY_LABELS } from "../constants";
 import ConfirmDialog from "../components/ConfirmDialog";
 import ChangeDishDialog from "../components/ChangeDishDialog";
+import AppFooter from "../components/AppFooter";
 
 // Aktivujeme isoWeek plugin - musí se provést jednou před použitím metod
 dayjs.extend(isoWeek);
@@ -610,6 +611,7 @@ function GeneratorPage() {
         onClose={() => setChangeSlot(null)}
         onSaved={handleChangeSaved}
       />
+      <AppFooter />
     </Box>
   );
 }

@@ -29,6 +29,7 @@ import { getDishList, deleteDish } from "../api";
 import { CATEGORY_LABELS, ALLERGENS } from "../constants";
 import DishFormDialog from "../components/DishFormDialog";
 import ConfirmDialog from "../components/ConfirmDialog";
+import AppFooter from "../components/AppFooter";
 
 // Mapa id alergenu → popis. Vytvoříme jednou mimo komponentu (nevytváří se při každém renderu).
 // Object.fromEntries() převede pole [[1, "1 – Lepek"], ...] na objekt { 1: "1 – Lepek", ... }
@@ -286,6 +287,7 @@ function DishLibraryPage() {
           {toast?.message}
         </Alert>
       </Snackbar>
+      <AppFooter />
     </Box>
   );
 }

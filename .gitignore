@@ -195,3 +195,5 @@ dist
 .history
 .ionide
 
+### Generated ###
+server/swagger.json

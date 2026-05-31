@@ -48,6 +48,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
+require("fs").writeFileSync("./swagger.json", JSON.stringify(swaggerSpec, null, 2));
 
 // -------------------------------------------------------
 // MIDDLEWARE
